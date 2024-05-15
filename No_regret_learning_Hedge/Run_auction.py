@@ -2,7 +2,7 @@ import numpy as np
 import cvxpy as cp
 from matplotlib import pyplot as plt
 from sklearn.metrics import r2_score
-from aux_functions import Bidder,  random_bidder, GPMW_bidder
+from aux_functions import Bidder,  random_bidder, Hedge_bidder #GPMW_bidder
 from tqdm import tqdm
 import pickle
 import re
