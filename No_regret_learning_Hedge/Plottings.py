@@ -7,6 +7,7 @@ from sklearn.metrics import r2_score
 from tqdm import tqdm
 import pickle
 import re
+from Run_auction import auction_data
 
 def get_bidder_configuration():
     bidder_types = ['Trustful vs Hedge', 'Trustful vs Random', 'All Hedge', 'Hedge vs Random', 'Random vs Hedge', 'Random vs Random']
