@@ -30,6 +30,8 @@ def get_bidder_configuration():
     
     return bidder_types, bidder_colors, legend_labels, file_names
 
+bidder_types, bidder_colors, legend_labels, file_names = get_bidder_configuration()
+
 def plot_regret(file_name):
     bidder_types, bidder_colors, legend_labels, file_names = get_bidder_configuration()
     
