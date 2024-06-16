@@ -7,6 +7,10 @@ from sklearn.metrics import r2_score
 from tqdm import tqdm
 import pickle
 import re
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import random
 
 # function to normalize payoffs in [0,1]
 
@@ -102,3 +106,59 @@ class random_bidder(Bidder):
         
     def Update(self,payoffs):
         self.weights = self.weights 
+
+class DQN_bidder(Bidder):
+    def __init__(self, c_list, d_list, K, max_payoff, T, c_limit=None, d_limit=None, has_seed=False):
+        super().__init__(c_list, d_list, K, c_limit=c_limit, d_limit=d_limit, has_seed=has_seed)
+        self.type = 'dqn'
+        self.T = T
+        self.max_payoff = max_payoff
+        self.model = self.build_model()
+        self.target_model = self.build_model()
+        self.update_target_model()
+
+        self.learning_rate = 5e-4
+        self.action_size = K
+        self.state_size = 2
+
+    def build_model(self):
+        model = nn.Sequential(
+            nn.Linear(self.state_size, 24),
+            nn.ReLU(),
+            nn.Linear(24, 24),
+            nn.ReLU(),
+            nn.Linear(24, self.action_size)
+        )
+        optimizer = optim.Adam(model.parameters(), lr=self.learning_rate)
+        return model, optimizer
+
+    def update_target_model(self):
+        self.target_model.load_state_dict(self.model.state_dict())
+
+    def choose_action(self, state):
+        state = torch.FloatTensor(state)
+        if np.random.rand() <= self.epsilon:
+            return random.randrange(self.action_size)
+        else:
+            with torch.no_grad():
+                act_values = self.model(state)
+                return torch.argmax(act_values).item()
+
+    def update_weights(self, state, action, reward, next_state, done):
+        state = torch.FloatTensor(state)
+        next_state = torch.FloatTensor(next_state)
+        reward = torch.FloatTensor([reward])
+        action = torch.LongTensor([action])
+        done = torch.BoolTensor([done])
+
+        if done:
+            target = reward
+        else:
+            target = reward + self.gamma * torch.max(self.target_model(next_state))
+
+        current = self.model(state)[action]
+        loss = nn.functional.mse_loss(current, target)
+
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()

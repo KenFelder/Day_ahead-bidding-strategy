@@ -2,7 +2,7 @@ import numpy as np
 import cvxpy as cp
 from matplotlib import pyplot as plt
 from sklearn.metrics import r2_score
-from aux_functions import Bidder,  random_bidder, Hedge_bidder #GPMW_bidder
+from aux_functions import Bidder,  random_bidder, Hedge_bidder, DQN_bidder
 from tqdm import tqdm
 import pickle
 import re
@@ -161,7 +161,82 @@ def combine(res, res_list):
     # Case a ==> Trustful Vs Hedge (Others play Trustful vs B5 Plays Hedge)  
 
 
-# Case a ==> Trustful Vs Hedge 
+# Case 0 ==> Trustful Vs DQN
+
+def Trustful_vs_DQN(num_games, num_runs, T, file_name):
+    types = ['Trustful vs DQN']
+    game_data_profile = [[]]
+    Q = 1448.4
+    N = 5
+    K = 10
+    c_cost_Hedge = [0.01, 0.09, 0.10, 0.21, 0.97, 0.020, 0.13, 0.075, 0.19, 0.095]  # last player
+    d_cost_Hedge = [11, 13, 11, 17, 20, 12, 11, 15, 17, 20]
+
+    # Actions of others obtained from diagonalization + their true cost
+    HG_profile = [(0.07, 9), (0.02, 10), (0.03, 12), (0.008, 12)]
+    other_costs = [(0.07, 9), (0.02, 10), (0.03, 12), (0.008, 12)]
+
+    cap = [700, 700, 700, 700, 700]
+    max_payoff = 36000
+
+    dqn_bidder = DQN_bidder(c_cost_Hedge, d_cost_Hedge, K, max_payoff, T)
+
+    player_final_dists = []
+    for run in tqdm(range(num_runs)):
+        dqn_bidder.restart()
+        game_data = auction_data()
+        for t in range(T):
+            action, ind = dqn_bidder.choose_action()
+            #             action, ind = (0.02, 12), 5
+            dqn_bidder.played_action = action
+            dqn_bidder.history_action.append(ind)
+            bids = HG_profile + [action]
+            x, marginal_price, payments, social_welfare = optimize_alloc(bids, Q, cap)
+
+            payoff = []
+            for i in range(N):
+                if i == N - 1:
+                    payoff_HG = payments[-1] - (0.5 * dqn_bidder.cost[0] * x[-1] + dqn_bidder.cost[1]) * x[-1]
+                    dqn_bidder.history_payoff.append(payoff_HG)
+                    payoff.append(payoff_HG)
+                #                     if t==T-1:
+                #                         print(f'Run {run}) Hedge player payoff at round {t+1}: {payoff_HG}')
+                else:
+                    payoff_bidder = payments[i] - (0.5 * other_costs[i][0] * x[i] + other_costs[i][1]) * x[i]
+                    payoff.append(payoff_bidder)
+            game_data.payoffs.append(payoff)
+
+            bidder = dqn_bidder
+            i = -1
+            payoffs_each_action = []
+            for j, action in enumerate(bidder.action_set):
+                tmp_bids = bids.copy()
+                tmp_bids[i] = action
+                x_tmp, marginal_price_tmp, payments_tmp, sw = optimize_alloc(tmp_bids, Q, cap)
+                payoff_action = payments_tmp[i] - (0.5 * bidder.cost[0] * x_tmp[i] + bidder.cost[1]) * x_tmp[i]
+                payoffs_each_action.append(payoff_action)
+                bidder.cum_each_action[j] += payoff_action
+            bidder.history_payoff_profile.append(np.array(payoffs_each_action))
+            regret = (max(bidder.cum_each_action) - sum(bidder.history_payoff)) / (t + 1)
+            bidder.update_weights(bidder.history_payoff_profile[-1])
+
+            game_data.regrets.append([regret])
+
+            # store data
+            game_data.Q.append(Q)
+            game_data.SW.append(social_welfare)
+            game_data.bids.append(bids)
+            game_data.allocations.append(x)
+            game_data.payments.append(payments)
+            game_data.marginal_prices.append(marginal_price)
+        player_final_dists.append(dqn_bidder.weights)
+        game_data_profile[0].append(game_data)
+
+    with open(f'{file_name}.pckl', 'wb') as file:
+        pickle.dump(T, file)
+        pickle.dump(types, file)
+        pickle.dump(game_data_profile, file)
+        pickle.dump(player_final_dists, file)
 
 def Trustful_vs_Hedge(num_games, num_runs, T, file_name):
     types = ['Trustful vs Hedge']
@@ -586,9 +661,10 @@ def Random_vs_Random(num_games, num_runs, T, file_name):
         pickle.dump(game_data_profile, file)
 
 
-Trustful_vs_Hedge(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulHG')
-Trustful_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name ='TrustfulRandom')
-all_Hedge(num_games = 1, num_runs = 15, T = 200, file_name ='allHG')
-Hedge_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name = 'Hedge_vs_Random')
-Random_vs_Hedge(num_games = 1, num_runs=15, T=200, file_name='Random_Hedge')
-Random_vs_Random(num_games = 1, num_runs = 15, T=200, file_name='all_Random')
+Trustful_vs_DQN(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulDQN')
+#Trustful_vs_Hedge(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulHG')
+#Trustful_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name ='TrustfulRandom')
+#all_Hedge(num_games = 1, num_runs = 15, T = 200, file_name ='allHG')
+#Hedge_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name = 'Hedge_vs_Random')
+#Random_vs_Hedge(num_games = 1, num_runs=15, T=200, file_name='Random_Hedge')
+#Random_vs_Random(num_games = 1, num_runs = 15, T=200, file_name='all_Random')
