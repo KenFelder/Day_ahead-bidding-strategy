@@ -48,9 +48,6 @@ class Bidder:
             cost_ratio = min(ratio_c, ratio_d)
             self.cost = (np.mean(c_list) * cost_ratio, np.mean(d_list) * cost_ratio)
 
-        # for same experience as DQN bidder
-        self.min_replay_size = 0 # 200
-
         self.weights = np.ones(K)
         self.history_payoff_profile = []
         self.history_action = []
@@ -120,19 +117,18 @@ class DQN_bidder(Bidder):
         self.max_payoff = max_payoff
 
         self.action_size = K
-        self.state_size = 3
+        self.state_size = 2
 
         self.learning_rate = 5e-2
-        self.gamma = 0.99 # 0.99
-        self.batch_size = 100 # 500
+        self.gamma = 0.99
+        self.batch_size = 500
         self.buffer_size = 50000
-        self.min_replay_size = 0
+        self.min_replay_size = 750
 
         self.epsilon_start = 1.0
         self.epsilon_end = 0.02
         self.epsilon_decay = 20
-        self.target_update_freq = 5 # 10
-        self.training_epochs = 100
+        self.target_update_freq = 10
 
         self.replay_buffer = deque(maxlen=self.buffer_size)
         self.history_losses = []
@@ -172,7 +168,7 @@ class DQN_bidder(Bidder):
         self.target_model.load_state_dict(self.model.state_dict())
 #        print("Target model updated")
 
-    def choose_action(self, epsilon, state_old):
+    def choose_action(self, epsilon, state):
 
         rnd_sample = random.random()
         #print(f"rnd_sample: {rnd_sample}, epsilon: {epsilon}")
@@ -181,25 +177,15 @@ class DQN_bidder(Bidder):
             action = self.action_set[ind]
             return action, ind
         else:
-            obs_t = torch.as_tensor(state_old, dtype=torch.float32)
+            obs_t = torch.as_tensor(state, dtype=torch.float32)
             q_values = self.model(obs_t.unsqueeze(0))
             max_q_index = int(torch.argmax(q_values, dim=1)[0])
             action = self.action_set[max_q_index]
-#            print()
-#            print(f"action: {action}, argmax: {max_q_index, q_values}")
-#            print()
+            print(f"action: {action}, argmax: {max_q_index, q_values}")
             return action, max_q_index
 
-    def norm_inputs(self, obses, actions, rews, new_obses):
-        pass
-
-    def denorm_outputs():
-        pass
-
     def update_weights(self):
-        batch_size = min(self.batch_size, len(self.replay_buffer))
-        transitions = random.sample(self.replay_buffer, batch_size)
-        #transitions = random.sample(self.replay_buffer, len(self.replay_buffer))
+        transitions = random.sample(self.replay_buffer, self.batch_size)
 
         obses = np.asarray([t[0] for t in transitions])
         actions = np.asarray([t[1] for t in transitions])
@@ -227,4 +213,4 @@ class DQN_bidder(Bidder):
 
         self.history_losses.append(loss.item())
 
-#       print(f"loss: {loss}")
+        print(f"loss: {loss}")

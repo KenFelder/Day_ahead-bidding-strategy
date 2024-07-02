@@ -96,7 +96,7 @@ def plot_regret(file_name):
             std = np.std(data, 0)
             p = plt.plot(range(plot_from, T), mean, marker=markers[idx_marker], markevery=10, markersize=7, markerfacecolor='w', color=bidder_colors[typ])
 
-#            print(mean, std)
+            print(mean, std)
 
             color = p[0].get_color()
             plt.fill_between(range(plot_from, T), mean - std, mean + std, alpha=0.1, color=color)
@@ -168,7 +168,7 @@ def collect_payoff_5(file_names, Diag, Trustful, bidder_colors, bidder_types):
     
     plt.xlabel('Time (rounds)')
     plt.xlim([0, T])
-    plt.ylim([0, 3300])
+    plt.ylim([0, 2000])
     plt.ylabel('Payoff [€]') 
     plt.tight_layout()
     plt.ticklabel_format(style = "sci", axis = "y", scilimits = (0,0))
@@ -232,7 +232,7 @@ def plot_combined_SW(file_names, Diag, Trustful, bidder_colors, bidder_types):
 
     plt.xlabel('Time (rounds)')
     plt.xlim([0, T])
-    plt.ylim([0, 25000])
+    plt.ylim([19000, 25000])
     plt.ylabel('Social cost [€]')
 
     plt.tight_layout()
@@ -291,7 +291,7 @@ def plot_combined_MCP(file_names, Diag, Trustful, bidder_colors, bidder_types):
 
     plt.xlabel('Time (rounds)')
     plt.xlim([plot_from, 200])
-    plt.ylim([0, 21])
+    plt.ylim([15, 25])
     plt.ylabel('Clearing price [€/MWh]')
 
     plt.tight_layout()
