@@ -10,13 +10,9 @@ import re
 from Run_auction import auction_data
 import csv
 
-def plot_losses():
-    pass
-
 def get_bidder_configuration():
-    bidder_types = ['Trustful vs DDPG', 'Trustful vs DQN', 'Trustful vs Hedge', 'Trustful vs Random']#, 'All Hedge', 'Hedge vs Random', 'Random vs Hedge', 'Random vs Random']
+    bidder_types = ['Trustful vs DQN', 'Trustful vs Hedge', 'Trustful vs Random']#, 'All Hedge', 'Hedge vs Random', 'Random vs Hedge', 'Random vs Random']
     bidder_colors = {
-        'Trustful vs DDPG': 'red',
         'Trustful vs DQN': 'blue',
         'Trustful vs Hedge': 'green',
         'Trustful vs Random': 'brown',
@@ -26,7 +22,6 @@ def get_bidder_configuration():
         #'Random vs Random': 'orange',
     }
     legend_labels = {
-        'Trustful vs DDPG': 'Trustful vs DDPG',
         'Trustful vs DQN': 'Trustful vs DQN',
         'Trustful vs Hedge': 'Trustful vs Hedge',
         'Trustful vs Random': 'Trustful vs Random',
@@ -35,7 +30,7 @@ def get_bidder_configuration():
         #'Random vs Hedge': 'Random vs Hedge',
         #'Random vs Random': 'Random vs Random'
     }
-    file_names = ['TrustfulDDPG', 'TrustfulDQN', 'TrustfulHG', 'TrustfulRandom']#, 'allHG', 'Hedge_vs_Random', 'Random_Hedge', 'all_Random']
+    file_names = ['TrustfulDQN', 'TrustfulHG', 'TrustfulRandom']#, 'allHG', 'Hedge_vs_Random', 'Random_Hedge', 'all_Random']
     
     return bidder_types, bidder_colors, legend_labels, file_names
 
@@ -43,8 +38,6 @@ bidder_types, bidder_colors, legend_labels, file_names = get_bidder_configuratio
 
 
 def write_to_csv(file_name):
-
-
     with open(f'{file_name}.pckl', 'rb') as file:
         global T
         T = pickle.load(file)
@@ -69,24 +62,6 @@ def write_to_csv(file_name):
                 for d in data:
                     row.writerow([d[i] for i in range(len(d))])
 
-    with open(f'{file_name}_bids_ind.csv', 'w', newline='') as file:
-        row = csv.writer(file,  delimiter=';')
-        for i, typ in enumerate(types):
-            if typ in bidder_colors:
-                data = np.array(
-                    [[game_data_profile[i][d].bids_ind[t][-1] if len(game_data_profile[i][d].bids_ind) > 0 else 0 for t in range(0, T)] for d in range(len(game_data_profile[i]))])
-                for d in data:
-                    row.writerow([d[i] for i in range(len(d))])
-
-    with open(f'{file_name}_allocations.csv', 'w', newline='') as file:
-        row = csv.writer(file,  delimiter=';')
-        for i, typ in enumerate(types):
-            if typ in bidder_colors:
-                data = np.array(
-                    [[game_data_profile[i][d].allocations[t][-1] for t in range(0, T)] for d in range(len(game_data_profile[i]))])
-                for d in data:
-                    row.writerow([d[i] for i in range(len(d))])
-
     with open(f'{file_name}_payoffs.csv', 'w', newline='') as file:
         row = csv.writer(file,  delimiter=';')
         for i, typ in enumerate(types):
@@ -96,45 +71,9 @@ def write_to_csv(file_name):
                 for d in data:
                     row.writerow([d[i] for i in range(len(d))])
 
-    with open(f'{file_name}_Q.csv', 'w', newline='') as file:
-        row = csv.writer(file,  delimiter=';')
-        for i, typ in enumerate(types):
-            if typ in bidder_colors:
-                data = np.array(
-                    [[game_data_profile[i][d].Q[t] for t in range(0, T)] for d in range(len(game_data_profile[i]))])
-                for d in data:
-                    row.writerow([d[i] for i in range(len(d))])
-
-write_to_csv('TrustfulDDPG')
 write_to_csv('TrustfulDQN')
 write_to_csv('TrustfulHG')
 write_to_csv('TrustfulRandom')
-
-def plot_chosen_action(file_name):
-    bidder_types, bidder_colors, legend_labels, file_names = get_bidder_configuration()
-
-    plt.rc("font", size=17)
-    with open(f'{file_name}.pckl', 'rb') as file:
-        T = pickle.load(file)
-        types = pickle.load(file)
-        game_data_profile = pickle.load(file)
-
-    plot_from = 0
-    idx_marker = 0
-    for i, typ in enumerate(types):
-        if typ in bidder_colors:
-            data = np.array(
-                [[game_data_profile[i][d].bids_ind[t][-1] for t in range(plot_from, T)] for d in range(len(game_data_profile[i]))])
-            mean = np.mean(data, 0)
-            std = np.std(data, 0)
-            p = plt.plot(range(plot_from, T), mean, marker='o', markevery=10, markersize=7, markerfacecolor='w', color=bidder_colors[typ])
-            color = p[0].get_color()
-            plt.fill_between(range(plot_from, T), mean - std, mean + std, alpha=0.1, color=color)
-
-            plt.bar([], [], label=legend_labels.get(typ, typ), marker='o', markersize=7, markerfacecolor='w', color=bidder_colors[typ])
-            idx_marker += 1
-
-#plot_chosen_action('TrustfulDQN')
 
 def plot_regret(file_name):
     bidder_types, bidder_colors, legend_labels, file_names = get_bidder_configuration()
@@ -157,7 +96,7 @@ def plot_regret(file_name):
             std = np.std(data, 0)
             p = plt.plot(range(plot_from, T), mean, marker=markers[idx_marker], markevery=10, markersize=7, markerfacecolor='w', color=bidder_colors[typ])
 
-#            print(mean, std)
+            print(mean, std)
 
             color = p[0].get_color()
             plt.fill_between(range(plot_from, T), mean - std, mean + std, alpha=0.1, color=color)
@@ -167,7 +106,6 @@ def plot_regret(file_name):
             idx_marker += 1
 plt.figure(figsize=(10, 4))
 
-plot_regret('TrustfulDDPG')
 plot_regret('TrustfulDQN')
 plot_regret('allHG')
 plot_regret('Random_Hedge')
@@ -215,17 +153,6 @@ def collect_payoff_5(file_names, Diag, Trustful, bidder_colors, bidder_types):
             data_non_average = np.array(
             [[game_data_profile[i][d].payoffs[t][-1] for t in range(plot_from, T)] for d in range(len(game_data_profile[i]))])
             data = [[sum(sublist[:i+1]) / (i+1) for i in range(len(sublist))] for sublist in data_non_average]
-
-            #mean_non_average = np.mean(data_non_average, 0)
-            #std_non_average = np.std(data_non_average, 0)
-
-            #p = plt.plot(range(plot_from, T), mean_non_average, marker='o', markevery=10, markersize=7, markerfacecolor='w',
-            #             color=bidder_colors[typ], label=legend_labels.get(typ, typ))
-            #color = p[0].get_color()
-            #plt.fill_between(range(plot_from, T), mean_non_average - std_non_average,
-            #                 mean_non_average + std_non_average, alpha=0.1,
-            #                 color=color)
-
             mean = np.mean(data, 0)
             std = np.std(data, 0)
 
@@ -236,12 +163,12 @@ def collect_payoff_5(file_names, Diag, Trustful, bidder_colors, bidder_types):
                              color=color)
 
         idx_marker += 1
-    #plt.axhline(y = Diag, color='#069AF3', linestyle='--', label=f'Best Response')
-    #plt.axhline(y = Trustful, color='#F96306', linestyle='--', label=f'Trustful')
+    plt.axhline(y = Diag, color='#069AF3', linestyle='--', label=f'Best Response')
+    plt.axhline(y = Trustful, color='#F96306', linestyle='--', label=f'Trustful')
     
     plt.xlabel('Time (rounds)')
     plt.xlim([0, T])
-    plt.ylim([0, 1300])
+    plt.ylim([0, 2000])
     plt.ylabel('Payoff [€]') 
     plt.tight_layout()
     plt.ticklabel_format(style = "sci", axis = "y", scilimits = (0,0))
@@ -273,12 +200,12 @@ def plot_combined_SW(file_names, Diag, Trustful, bidder_colors, bidder_types):
         for i, typ in enumerate(types):
             if typ in bidder_types:
                 data_non_average = np.array(
-                    # average over time, not different games
                     [[game_data_profile[i][d].SW[t] for t in range(plot_from, T)]
                      for d in range(len(game_data_profile[i]))])
                 
                 data = [[sum(sublist[:i + 1]) / (i + 1) for i in range(len(sublist))] for sublist in data_non_average]
                 mean = np.mean(data, 0)
+                #print(mean)
                 std = np.std(data, 0)
 
                 if idx_marker < len(markers):
@@ -297,17 +224,16 @@ def plot_combined_SW(file_names, Diag, Trustful, bidder_colors, bidder_types):
                 idx_marker += 1
     
 
-    #plt.axhline(y= Diag, color='#069AF3', linestyle='--', label=f'Best Response')
-    #plt.axhline(y= Trustful, color='#F96306', linestyle='--', label=f'Trustful')
+    plt.axhline(y= Diag, color='#069AF3', linestyle='--', label=f'Best Response')
+    plt.axhline(y= Trustful, color='#F96306', linestyle='--', label=f'Trustful')
     legend = plt.legend(loc='upper center', bbox_to_anchor=(0.55, 1.11), bbox_transform=plt.gcf().transFigure, ncol=2)
         
     legend.get_frame().set_alpha(0)
 
     plt.xlabel('Time (rounds)')
     plt.xlim([0, T])
-    #plt.ylim([0, 22000])
-    #plt.ylabel('Social cost [€]')
-    plt.ylabel('Social welfare [€]')
+    plt.ylim([19000, 25000])
+    plt.ylabel('Social cost [€]')
 
     plt.tight_layout()
     plt.ticklabel_format(style = "sci", axis = "y", scilimits = (0,0))
@@ -358,14 +284,14 @@ def plot_combined_MCP(file_names, Diag, Trustful, bidder_colors, bidder_types):
                 idx_marker += 1
     
    
-    #plt.axhline(y = Diag, color='#069AF3', linestyle='--', label=f'Diag')
-    #plt.axhline(y = Trustful, color='#F96306', linestyle='--', label=f'Trustful')
+    plt.axhline(y = Diag, color='#069AF3', linestyle='--', label=f'Diag')
+    plt.axhline(y = Trustful, color='#F96306', linestyle='--', label=f'Trustful')
 
 
 
     plt.xlabel('Time (rounds)')
     plt.xlim([plot_from, 200])
-    plt.ylim([0, 20])
+    plt.ylim([15, 25])
     plt.ylabel('Clearing price [€/MWh]')
 
     plt.tight_layout()
