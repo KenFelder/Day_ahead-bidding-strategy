@@ -214,7 +214,7 @@ def combine(res, res_list):
 
 # Case 0 ==> Trustful Vs DQN
 
-def Trustful_vs_DDPG(num_games, num_runs, T, file_name, seed=20, static_profiles=False, welfare=True):
+def Trustful_vs_DDPG(num_games, num_runs, T, file_name, static_profiles=False, welfare=True):
     types = ['Trustful vs DDPG']
     game_data_profile = [[]]
     Q = 1448.4
@@ -252,7 +252,6 @@ def Trustful_vs_DDPG(num_games, num_runs, T, file_name, seed=20, static_profiles
                 cap = [np.random.normal(loc=cap, scale=0.15*cap, size=T) for _ in range(5)]
                 cap = [cap[i][t] for i in range(5)]
                 Q = 1448.4
-                np.random.seed(seed)
                 Q_load = np.random.normal(loc=Q, scale=0.15*Q, size=T)
                 Q = Q_load[t]
             epsilon = np.interp(t, [0, ddpg_bidder.epsilon_decay], [ddpg_bidder.epsilon_start, ddpg_bidder.epsilon_end])
@@ -344,7 +343,7 @@ def Trustful_vs_DDPG(num_games, num_runs, T, file_name, seed=20, static_profiles
         pickle.dump(game_data_profile, file)
         pickle.dump(player_final_dists, file)
 
-def Trustful_vs_DQN(num_games, num_runs, T, file_name, seed=20, static_profiles=False, welfare=True):
+def Trustful_vs_DQN(num_games, num_runs, T, file_name, static_profiles=False, welfare=True):
     types = ['Trustful vs DQN']
     game_data_profile = [[]]
     Q = 1448.4
@@ -381,7 +380,6 @@ def Trustful_vs_DQN(num_games, num_runs, T, file_name, seed=20, static_profiles=
                 cap = [np.random.normal(loc=cap, scale=0.15*cap, size=T) for _ in range(5)]
                 cap = [cap[i][t] for i in range(5)]
                 Q = 1448.4
-                np.random.seed(seed)
                 Q_load = np.random.normal(loc=Q, scale=0.15*Q, size=T)
                 Q = Q_load[t]
             epsilon = np.interp(t, [0, dqn_bidder.epsilon_decay], [dqn_bidder.epsilon_start, dqn_bidder.epsilon_end])
@@ -455,7 +453,7 @@ def Trustful_vs_DQN(num_games, num_runs, T, file_name, seed=20, static_profiles=
         pickle.dump(game_data_profile, file)
         pickle.dump(player_final_dists, file)
 
-def Trustful_vs_Hedge(num_games, num_runs, T, file_name, seed=20, static_profiles=False, welfare=False):
+def Trustful_vs_Hedge(num_games, num_runs, T, file_name, static_profiles=False, welfare=True):
     types = ['Trustful vs Hedge']
     game_data_profile = [[]]
     Q = 1448.4
@@ -489,7 +487,6 @@ def Trustful_vs_Hedge(num_games, num_runs, T, file_name, seed=20, static_profile
                 cap = [np.random.normal(loc=cap, scale=0.15*cap, size=T) for _ in range(5)]
                 cap = [cap[i][t] for i in range(5)]
                 Q = 1448.4
-                np.random.seed(seed)
                 Q_load = np.random.normal(loc=Q, scale=0.15*Q, size=T)
                 Q = Q_load[t]
             action, ind = hedge_bidder.choose_action()
@@ -555,7 +552,7 @@ def Trustful_vs_Hedge(num_games, num_runs, T, file_name, seed=20, static_profile
     ## Case b ==> Trustful Vs Random (others play Trustful vs B5 Plays Random)
 
 # Case b ==> Trustful Vs Random
-def Trustful_vs_Random(num_games , num_runs, T, file_name, seed=20, static_profiles=False, welfare=False):
+def Trustful_vs_Random(num_games , num_runs, T, file_name, static_profiles=False, welfare=True):
     types = ['Trustful vs Random']
     game_data_profile = [[]]
     Q = 1448.4
@@ -586,7 +583,6 @@ def Trustful_vs_Random(num_games , num_runs, T, file_name, seed=20, static_profi
                 cap = [np.random.normal(loc=cap, scale=0.15*cap, size=T) for _ in range(5)]
                 cap = [cap[i][t] for i in range(5)]
                 Q = 1448.4
-                np.random.seed(seed)
                 Q_load = np.random.normal(loc=Q, scale=0.15*Q, size=T)
                 Q = Q_load[t]
             action, ind = Random_bidder.choose_action()
@@ -905,10 +901,10 @@ def Random_vs_Random(num_games, num_runs, T, file_name):
 
 if __name__ == "__main__":
     seed = np.random.randint(0, 100)
-    #Trustful_vs_DDPG(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulDDPG', seed = seed)
-    Trustful_vs_DQN(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulDQN', seed = seed)
-    Trustful_vs_Hedge(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulHG', seed = seed)
-    Trustful_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name ='TrustfulRandom', seed = seed)
+    #Trustful_vs_DDPG(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulDDPG')
+    Trustful_vs_DQN(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulDQN')
+    Trustful_vs_Hedge(num_games = 1, num_runs = 15, T = 200, file_name='TrustfulHG')
+    Trustful_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name ='TrustfulRandom')
 
     #all_Hedge(num_games = 1, num_runs = 15, T = 200, file_name ='allHG')
     #Hedge_vs_Random(num_games = 1, num_runs = 15, T = 200, file_name = 'Hedge_vs_Random')
